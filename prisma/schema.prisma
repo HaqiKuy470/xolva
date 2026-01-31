@@ -1,0 +1,58 @@
+// This is your Prisma schema file for Xolva
+// Connects to your Supabase PostgreSQL database
+
+datasource db {
+  provider = "sqlite"
+  // KOSONGIN AJA, JANGAN ADA BARIS URL
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  level            Int       @default(1)
+  totalExp         Int       @default(0)
+  tier             String    @default("FREE") // FREE, 5K, 10K, 20K, 30K
+  weeklyPhotoCount Int       @default(0)      // Untuk limitasi upload foto mingguan
+  habits           Habit[]
+  posts            Post[]
+  challenges       UserChallenge[]
+  createdAt        DateTime  @default(now())
+}
+
+model Habit {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  category    String   // DAILY, WEEKLY, MONTHLY, PROJECT
+  expReward   Int      // Disimpan sesuai range (3-6, 15-25, etc.)
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  posts       Post[]
+}
+
+model UserChallenge {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // EASY, MEDIUM, HARD
+  status      String   @default("PENDING") // COMPLETED, FAILED
+  expiresAt   DateTime // Muncul random 4 hari sekali
+  createdAt   DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  habitId   String?
+  habit     Habit?   @relation(fields: [habitId], references: [id])
+  imageUrl  String   // Foto masuk ke Global Explore
+  caption   String?
+  createdAt DateTime @default(now())
+}
